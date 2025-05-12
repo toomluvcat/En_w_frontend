@@ -21,14 +21,17 @@ const TOOL_CATEGORIES = [
   { value: "components", label: "Electronic Components" },
 ]
 
-export function SearchAndFilter() {
+interface SearchAndFilterProps {
+  onFilter: (searchQuery: string, category: string) => void
+}
+
+export function SearchAndFilter({ onFilter }: SearchAndFilterProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [category, setCategory] = useState("all")
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Searching for:", searchQuery, "in category:", category)
-    // In a real app, this would trigger a search API call or filter the items
+    onFilter(searchQuery, category)
   }
 
   return (

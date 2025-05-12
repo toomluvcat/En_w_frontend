@@ -1,4 +1,6 @@
-import type { Metadata } from "next"
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { PlusCircle, ClipboardList } from "lucide-react"
@@ -6,12 +8,15 @@ import { ItemGrid } from "@/components/item-grid"
 import { SearchAndFilter } from "@/components/search-and-filter"
 import { MotionDiv, fadeIn } from "@/components/animations/motion"
 
-export const metadata: Metadata = {
-  title: "Admin Dashboard - Item Management",
-  description: "Admin dashboard for managing borrowable items",
-}
-
 export default function DashboardPage() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("all")
+
+  const handleFilter = (search: string, category: string) => {
+    setSearchQuery(search)
+    setCategoryFilter(category)
+  }
+
   return (
     <MotionDiv
       className="container mx-auto py-10 px-4"
@@ -37,9 +42,9 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-      <SearchAndFilter />
+      <SearchAndFilter onFilter={handleFilter} />
       <div className="mt-6">
-        <ItemGrid />
+        <ItemGrid searchQuery={searchQuery} categoryFilter={categoryFilter} />
       </div>
     </MotionDiv>
   )
