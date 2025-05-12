@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, SlidersHorizontal } from "lucide-react"
 
 const TOOL_CATEGORIES = [
-  { value: "all", label: "All Categories" },
   { value: "hand-tools", label: "Hand Tools" },
   { value: "power-tools", label: "Power Tools" },
   { value: "measuring-tools", label: "Measuring Tools" },
@@ -19,7 +18,8 @@ const TOOL_CATEGORIES = [
   { value: "safety", label: "Safety Equipment" },
   { value: "boards", label: "Electronic Boards" },
   { value: "components", label: "Electronic Components" },
-]
+  { value: "other", label: "Other" },
+];
 
 interface SearchAndFilterProps {
   onFilter: (searchQuery: string, category: string) => void
