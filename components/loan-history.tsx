@@ -51,19 +51,45 @@ export function LoanHistory() {
   })
 
   useEffect(() => {
-    // In a real application, this would be an API call with pagination
-    // For demo purposes, we're using mock data
     const fetchLoans = async () => {
       try {
         setIsLoading(true)
 
         const res = await axios.get("https://en-w-backend.onrender.com/event")
 
-        setAllLoans(res.data)
-        setFilteredLoans(res.data)
-        setTotalPages(Math.ceil(res.data.length / loansPerPage))
+        // ตรวจสอบว่า res.data มีค่าและเป็น array หรือไม่
+        if (res.data && Array.isArray(res.data)) {
+          setAllLoans(res.data)
+          setFilteredLoans(res.data)
+          setTotalPages(Math.ceil(res.data.length / loansPerPage))
+        } else {
+          // กรณีข้อมูลเป็น null หรือไม่ใช่ array
+          console.warn("API returned no data or invalid data format")
+          setAllLoans([])
+          setFilteredLoans([])
+          setTotalPages(1)
+          
+          // แสดงข้อความแจ้งเตือนผู้ใช้
+          toast({
+            title: "No loan data available",
+            description: "Could not retrieve loan history at this time.",
+            variant: "destructive"
+          })
+        }
       } catch (error) {
         console.error("Failed to fetch loans:", error)
+        
+        // แสดงข้อความแจ้งเตือนข้อผิดพลาด
+        toast({
+          title: "Error loading data",
+          description: "There was a problem fetching the loan history. Please try again later.",
+          variant: "destructive"
+        })
+        
+        // เซ็ตค่าเริ่มต้นเมื่อเกิดข้อผิดพลาด
+        setAllLoans([])
+        setFilteredLoans([])
+        setTotalPages(1)
       } finally {
         setIsLoading(false)
       }
@@ -78,6 +104,13 @@ export function LoanHistory() {
   }, [searchQuery, statusFilter, selectedDate, allLoans])
 
   const applyFilters = () => {
+    // ตรวจสอบว่า allLoans เป็น array หรือไม่
+    if (!allLoans || !Array.isArray(allLoans)) {
+      setFilteredLoans([])
+      setTotalPages(1)
+      return
+    }
+    
     let result = [...allLoans]
     const activeFilterState = {
       search: false,
@@ -88,13 +121,21 @@ export function LoanHistory() {
     // Apply search filter
     if (searchQuery.trim() !== "") {
       activeFilterState.search = true
-      result = result.filter((loan) => loan.UserName.toLowerCase().includes(searchQuery.toLowerCase()))
+      result = result.filter((loan) => {
+        // ตรวจสอบว่า UserName มีค่าหรือไม่
+        if (!loan.UserName) return false
+        return loan.UserName.toLowerCase().includes(searchQuery.toLowerCase())
+      })
     }
 
     // Apply status filter
     if (statusFilter !== "all") {
       activeFilterState.status = true
-      result = result.filter((loan) => loan.Status === statusFilter)
+      result = result.filter((loan) => {
+        // ตรวจสอบว่า Status มีค่าหรือไม่
+        if (!loan.Status) return false
+        return loan.Status === statusFilter
+      })
     }
 
     // Apply date filter
@@ -103,18 +144,36 @@ export function LoanHistory() {
       const filterDate = startOfDay(selectedDate)
 
       result = result.filter((loan) => {
-        const loanDate = startOfDay(new Date(loan.CreatedAt))
-        return isEqual(loanDate, filterDate)
+        // ตรวจสอบว่า CreatedAt มีค่าหรือไม่
+        if (!loan.CreatedAt) return false
+        
+        try {
+          const loanDate = startOfDay(new Date(loan.CreatedAt))
+          return isEqual(loanDate, filterDate)
+        } catch (error) {
+          console.error("Invalid date format:", loan.CreatedAt)
+          return false
+        }
       })
     }
 
     setActiveFilters(activeFilterState)
     setFilteredLoans(result)
-    setTotalPages(Math.ceil(result.length / loansPerPage))
+    setTotalPages(Math.max(1, Math.ceil(result.length / loansPerPage)))
     setCurrentPage(1) // Reset to first page when filters change
   }
 
   const handleStatusUpdate = (loan: LoanEvent) => {
+    // ตรวจสอบว่า loan และ Status มีค่าหรือไม่
+    if (!loan || !loan.Status) {
+      toast({
+        title: "Cannot update status",
+        description: "Invalid loan data.",
+        variant: "destructive",
+      })
+      return
+    }
+    
     // Don't allow status updates for rejected or completed loans
     if (loan.Status === "rejected") {
       toast({
@@ -144,29 +203,51 @@ export function LoanHistory() {
   }
 
   const handleStatusChange = async (newStatus: string) => {
-    if (selectedLoan) {
-      try {
-        // In a real application, this would be an API call
-        // const response = await fetch(`/api/loans/${selectedLoan.EventID}/status`, {
-        //   method: 'PUT',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ Status: newStatus })
-        // })
+    if (!selectedLoan || !selectedLoan.EventID) {
+      toast({
+        title: "Error",
+        description: "Cannot update status: Invalid loan data.",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    try {
+      // In a real application, this would be an API call
+      // const response = await fetch(`/api/loans/${selectedLoan.EventID}/status`, {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ Status: newStatus })
+      // })
 
-        // Update local state
-        const updatedLoans = allLoans.map((loan) =>
-          loan.EventID === selectedLoan.EventID
-            ? { ...loan, Status: newStatus, ApprovedAt: new Date().toISOString() }
-            : loan,
-        )
-
-        setAllLoans(updatedLoans)
-        // Filters will be reapplied automatically due to the useEffect dependency
-
-        setIsStatusDialogOpen(false)
-      } catch (error) {
-        console.error("Failed to update loan status:", error)
+      // ตรวจสอบว่า allLoans เป็น array หรือไม่
+      if (!Array.isArray(allLoans)) {
+        throw new Error("Invalid loan data structure")
       }
+
+      // Update local state
+      const updatedLoans = allLoans.map((loan) =>
+        loan.EventID === selectedLoan.EventID
+          ? { ...loan, Status: newStatus, ApprovedAt: new Date().toISOString() }
+          : loan
+      )
+
+      setAllLoans(updatedLoans)
+      // Filters will be reapplied automatically due to the useEffect dependency
+
+      toast({
+        title: "Status updated",
+        description: `Loan status has been updated to ${newStatus}.`,
+      })
+
+      setIsStatusDialogOpen(false)
+    } catch (error) {
+      console.error("Failed to update loan status:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update loan status. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -187,7 +268,20 @@ export function LoanHistory() {
   }
 
   const paginatedLoans = useMemo(() => {
-    return filteredLoans.slice((currentPage - 1) * loansPerPage, currentPage * loansPerPage)
+    // ตรวจสอบว่า filteredLoans เป็น array หรือไม่
+    if (!filteredLoans || !Array.isArray(filteredLoans)) {
+      return []
+    }
+    
+    const startIndex = (currentPage - 1) * loansPerPage
+    const endIndex = startIndex + loansPerPage
+    
+    // ตรวจสอบว่า startIndex และ endIndex ถูกต้อง
+    if (startIndex < 0 || startIndex >= filteredLoans.length) {
+      return []
+    }
+    
+    return filteredLoans.slice(startIndex, endIndex)
   }, [filteredLoans, currentPage, loansPerPage])
 
   return (
@@ -271,9 +365,9 @@ export function LoanHistory() {
             </Badge>
           )}
 
-          {activeFilters.date && (
+          {activeFilters.date && selectedDate && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Date: {format(selectedDate as Date, "MMM d, yyyy")}
+              Date: {format(selectedDate, "MMM d, yyyy")}
               <X className="h-3 w-3 cursor-pointer" onClick={() => clearFilter("date")} />
             </Badge>
           )}
