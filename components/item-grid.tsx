@@ -91,10 +91,8 @@ interface Item {
   const handleDeleteConfirm = async () => {
     if (selectedItemId) {
       try {
-        // In a real application, this would be an API call
-        // await fetch(`/api/items/${selectedItemId}`, { method: 'DELETE' })
-
-        // Update local state
+        const protectID = encodeURI(String(selectedItemId))
+       axios.delete(`https://en-w-backend.onrender.com/item/${protectID}`)
         setItems(items.filter((item) => item.ItemID !== selectedItemId))
         setIsDeleteDialogOpen(false)
         setSelectedItemId(null)
