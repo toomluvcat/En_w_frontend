@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/pagination"
 import { Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react"
 import { DeleteItemDialog } from "@/components/delete-item-dialog"
-import type { Item } from "@/types/item"
 import { useRouter } from "next/navigation"
 import { MotionDiv, fadeIn, staggerContainer, itemAnimation } from "@/components/animations/motion"
 import { SkeletonItem } from "@/components/ui/skeleton-item"
@@ -35,6 +34,18 @@ export function ItemGrid({
   const [isLoading, setIsLoading] = useState(true)
   const itemsPerPage = 15 // Increased from 12 to 15 to show 3 rows of 5 items
   const router = useRouter()
+
+interface Item {
+  ItemID: number
+  Name: string
+  Description: string
+  ImageUrl: string
+  Bookmarks: boolean
+  Category: string
+  MaxQuantity: number
+  CurrentQuantity: number
+}
+
 
   useEffect(() => {
     // In a real application, this would be an API call with pagination
@@ -84,7 +95,7 @@ export function ItemGrid({
         // await fetch(`/api/items/${selectedItemId}`, { method: 'DELETE' })
 
         // Update local state
-        setItems(items.filter((item) => item.ID !== selectedItemId))
+        setItems(items.filter((item) => item.ItemID !== selectedItemId))
         setIsDeleteDialogOpen(false)
         setSelectedItemId(null)
       } catch (error) {
@@ -119,7 +130,7 @@ export function ItemGrid({
                 <MotionDiv key={index} variants={itemAnimation}>
                   <Card
                     className="overflow-hidden cursor-pointer transition-all hover:shadow-md"
-                    onClick={() => router.push(`/items/${item.ID}`)}
+                    onClick={() => router.push(`/items/${item.ItemID}`)}
                   >
                     <div className="relative aspect-square bg-muted">
                       {item.ImageUrl ? (
@@ -150,13 +161,13 @@ export function ItemGrid({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                            <Link href={`/items/${item.ID}`}>
+                            <Link href={`/items/${item.ItemID}`}>
                               <DropdownMenuItem>
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
                               </DropdownMenuItem>
                             </Link>
-                            <Link href={`/items/edit/${item.ID}`}>
+                            <Link href={`/items/edit/${item.ItemID}`}>
                               <DropdownMenuItem>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
@@ -166,7 +177,7 @@ export function ItemGrid({
                               className="text-destructive focus:text-destructive"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                handleDeleteClick(item.ID)
+                                handleDeleteClick(item.ItemID)
                               }}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
