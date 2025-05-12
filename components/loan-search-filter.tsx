@@ -60,7 +60,7 @@ export function LoanSearchFilter() {
             </Select>
           </div>
           <div className="w-full md:w-48">
-            <DatePicker date={date} setDate={setDate} placeholder="Filter by date" />
+            <DatePicker date={date} setDate={setDate} />
           </div>
           <Button type="submit" className="shrink-0">
             <SlidersHorizontal className="mr-2 h-4 w-4" />

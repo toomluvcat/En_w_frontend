@@ -51,45 +51,137 @@ export function LoanHistory() {
   })
 
   useEffect(() => {
+    // In a real application, this would be an API call with pagination
+    // For demo purposes, we're using mock data
     const fetchLoans = async () => {
       try {
         setIsLoading(true)
 
-        const res = await axios.get("https://en-w-backend.onrender.com/event")
+        // Simulate API delay
+        await new Promise((resolve) => setTimeout(resolve, 1500))
 
-        // ตรวจสอบว่า res.data มีค่าและเป็น array หรือไม่
-        if (res.data && Array.isArray(res.data)) {
-          setAllLoans(res.data)
-          setFilteredLoans(res.data)
-          setTotalPages(Math.ceil(res.data.length / loansPerPage))
-        } else {
-          // กรณีข้อมูลเป็น null หรือไม่ใช่ array
-          console.warn("API returned no data or invalid data format")
-          setAllLoans([])
-          setFilteredLoans([])
-          setTotalPages(1)
-          
-          // แสดงข้อความแจ้งเตือนผู้ใช้
-          toast({
-            title: "No loan data available",
-            description: "Could not retrieve loan history at this time.",
-            variant: "destructive"
+        // This would be replaced with an actual API call
+        const mockLoans: LoanEvent[] = [
+          {
+            EventID: 1,
+            UserName: "Kritsada beapthong",
+            UserID: 1,
+            CreatedAt: "2025-05-10T00:23:23.495801+07:00",
+            ApprovedAt: "2025-05-10T00:23:23.495801+07:00",
+            Status: "approved",
+            Loan: [
+              {
+                ItemID: 1,
+                Name: "Hammer",
+                Quantity: 1,
+                ImageUrl: "https://res.cloudinary.com/dtpph38t4/image/upload/v1746868206/my_items/EN.W2.png",
+              },
+            ],
+          },
+          {
+            EventID: 2,
+            UserName: "Somchai Jaidee",
+            UserID: 2,
+            CreatedAt: "2025-05-09T14:30:00.000000+07:00",
+            ApprovedAt: null,
+            Status: "pending",
+            Loan: [
+              {
+                ItemID: 2,
+                Name: "Power Drill",
+                Quantity: 1,
+                ImageUrl: "https://res.cloudinary.com/dtpph38t4/image/upload/v1746868206/my_items/EN.W2.png",
+              },
+              {
+                ItemID: 5,
+                Name: "Screwdriver Set",
+                Quantity: 1,
+                ImageUrl: "https://res.cloudinary.com/dtpph38t4/image/upload/v1746888042/my_items/EN.W1.png",
+              },
+            ],
+          },
+          {
+            EventID: 3,
+            UserName: "Wanchai Sawasdee",
+            UserID: 3,
+            CreatedAt: "2025-05-08T09:15:00.000000+07:00",
+            ApprovedAt: "2025-05-08T10:30:00.000000+07:00",
+            Status: "rejected",
+            Loan: [
+              {
+                ItemID: 7,
+                Name: "Arduino Board",
+                Quantity: 3,
+              },
+            ],
+          },
+          {
+            EventID: 4,
+            UserName: "Pranee Rakdee",
+            UserID: 4,
+            CreatedAt: "2025-05-07T16:45:00.000000+07:00",
+            ApprovedAt: "2025-05-07T17:20:00.000000+07:00",
+            Status: "completed",
+            Loan: [
+              {
+                ItemID: 3,
+                Name: "Measuring Tape",
+                Quantity: 1,
+              },
+              {
+                ItemID: 9,
+                Name: "Safety Goggles",
+                Quantity: 2,
+              },
+            ],
+          },
+          {
+            EventID: 5,
+            UserName: "Kritsada beapthong",
+            UserID: 1,
+            CreatedAt: "2025-05-06T11:10:00.000000+07:00",
+            ApprovedAt: "2025-05-06T13:25:00.000000+07:00",
+            Status: "approved",
+            Loan: [
+              {
+                ItemID: 10,
+                Name: "Soldering Iron",
+                Quantity: 1,
+              },
+            ],
+          },
+        ]
+
+        // Generate more mock data
+        for (let i = 6; i <= 25; i++) {
+          const statuses = ["pending", "approved", "rejected", "completed"]
+          const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]
+
+          const date = new Date()
+          date.setDate(date.getDate() - (i % 10))
+
+          mockLoans.push({
+            EventID: i,
+            UserName: `User ${i}`,
+            UserID: (i % 5) + 1,
+            CreatedAt: date.toISOString(),
+            ApprovedAt: randomStatus !== "pending" ? new Date(date.getTime() + 3600000).toISOString() : null,
+            Status: randomStatus,
+            Loan: [
+              {
+                ItemID: (i % 12) + 1,
+                Name: `Item ${(i % 12) + 1}`,
+                Quantity: Math.floor(Math.random() * 3) + 1,
+              },
+            ],
           })
         }
+
+        setAllLoans(mockLoans)
+        setFilteredLoans(mockLoans)
+        setTotalPages(Math.ceil(mockLoans.length / loansPerPage))
       } catch (error) {
         console.error("Failed to fetch loans:", error)
-        
-        // แสดงข้อความแจ้งเตือนข้อผิดพลาด
-        toast({
-          title: "Error loading data",
-          description: "There was a problem fetching the loan history. Please try again later.",
-          variant: "destructive"
-        })
-        
-        // เซ็ตค่าเริ่มต้นเมื่อเกิดข้อผิดพลาด
-        setAllLoans([])
-        setFilteredLoans([])
-        setTotalPages(1)
       } finally {
         setIsLoading(false)
       }
@@ -97,6 +189,53 @@ export function LoanHistory() {
 
     fetchLoans()
   }, [])
+  // useEffect(() => {
+  //   const fetchLoans = async () => {
+  //     try {
+  //       setIsLoading(true)
+
+  //       const res = await axios.get("https://en-w-backend.onrender.com/event")
+
+  //       // ตรวจสอบว่า res.data มีค่าและเป็น array หรือไม่
+  //       if (res.data && Array.isArray(res.data)) {
+  //         setAllLoans(res.data)
+  //         setFilteredLoans(res.data)
+  //         setTotalPages(Math.ceil(res.data.length / loansPerPage))
+  //       } else {
+  //         // กรณีข้อมูลเป็น null หรือไม่ใช่ array
+  //         console.warn("API returned no data or invalid data format")
+  //         setAllLoans([])
+  //         setFilteredLoans([])
+  //         setTotalPages(1)
+          
+  //         // แสดงข้อความแจ้งเตือนผู้ใช้
+  //         toast({
+  //           title: "No loan data available",
+  //           description: "Could not retrieve loan history at this time.",
+  //           variant: "destructive"
+  //         })
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to fetch loans:", error)
+        
+  //       // แสดงข้อความแจ้งเตือนข้อผิดพลาด
+  //       toast({
+  //         title: "Error loading data",
+  //         description: "There was a problem fetching the loan history. Please try again later.",
+  //         variant: "destructive"
+  //       })
+        
+  //       // เซ็ตค่าเริ่มต้นเมื่อเกิดข้อผิดพลาด
+  //       setAllLoans([])
+  //       setFilteredLoans([])
+  //       setTotalPages(1)
+  //     } finally {
+  //       setIsLoading(false)
+  //     }
+  //   }
+
+  //   fetchLoans()
+  // }, [])
 
   // Apply filters whenever filter values change
   useEffect(() => {
