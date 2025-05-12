@@ -15,9 +15,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import type { Item } from "@/types/item"
 import type { LoanEvent } from "@/types/loan"
 import axios from "axios"
+import { useParams } from "next/navigation"
 
-export default function ItemDetailsPage({ params: _params }: { params: Promise<{ id: string }> }) {
-  const params = use(_params);
+export default function ItemDetailsPage() {
+  
+  const params = useParams()
   const [item, setItem] = useState<Item | null>(null)
   const [borrowHistory, setBorrowHistory] = useState<LoanEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -27,7 +29,7 @@ export default function ItemDetailsPage({ params: _params }: { params: Promise<{
       setIsLoading(true)
       try {
         // Simulate API delay
-        const protectID = encodeURI(params.id)
+        const protectID = encodeURI(params.id as string)
         const res =await axios.get(`https://en-w-backend.onrender.com/admin/item/${protectID}`)
 
         setItem(res.data.item)
